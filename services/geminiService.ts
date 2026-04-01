@@ -1,5 +1,4 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { tavily } from "@tavily/core";
 import { ActiveView } from '../types';
 import type { WeatherData, DiseaseReport, PlantingRecommendation, PlantingRequest, DiseaseHotspot, SoilHealthReport, PlantingRecommendationResponse, CropPricePrediction, WebSource, ChatMessage, NegotiationTerms, NegotiationResponse, CropYieldRequest, CropYieldResponse, PriceBrokerAnalysis, MicroclimateAnalysis, Alert, Livestock, LivestockHealthAnalysis, ProfitForecastRequest, ProfitForecastResponse, IndianAgriNewsResponse, RecipeResponse, ParsedListItem, ParsedCommand, DynamicSubscriptionPreferences, WeeklyProduceItem, CuratedItem, CSATier, FarmMachinery, MachineryRentalRequest, Zone, ProductListing } from '../types';
 
@@ -9,10 +8,18 @@ if (!process.env.API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-if (!process.env.TAVILY_API_KEY) {
-    throw new Error("TAVILY_API_KEY environment variable is not set");
-}
-const tavilyClient = tavily({ apiKey: process.env.TAVILY_API_KEY });
+// Tavily search via API route (avoids CORS issues)
+const tavilySearch = async (query: string, options: { maxResults?: number; searchDepth?: string; topic?: string } = {}) => {
+    const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, ...options }),
+    });
+    if (!response.ok) {
+        throw new Error('Search failed');
+    }
+    return response.json();
+};
 
 const diseaseReportCache = new Map<string, DiseaseReport>();
 const soilHealthCache = new Map<string, SoilHealthReport>();
@@ -390,7 +397,7 @@ export const getPlantingRecommendations = async (request: PlantingRequest, langu
 
 export const getMarketPricePrediction = async (cropName: string, location: string, startDate: string, endDate: string, language: string = 'en'): Promise<CropPricePrediction> => {
     try {
-        const searchResults = await tavilyClient.search(`Current market price prediction and trends for ${cropName} in ${location} ${startDate} to ${endDate}`, {
+        const searchResults = await tavilySearch(`Current market price prediction and trends for ${cropName} in ${location} ${startDate} to ${endDate}`, {
             searchDepth: "advanced",
             maxResults: 5
         });
@@ -421,7 +428,7 @@ export const getMarketPricePrediction = async (cropName: string, location: strin
 
 export const getProfitForecast = async (request: ProfitForecastRequest, language: string = 'en'): Promise<ProfitForecastResponse> => {
     try {
-        const searchResults = await tavilyClient.search(`Profit margin forecast, demand, and analysis for ${request.cropName} in ${request.location}`, {
+        const searchResults = await tavilySearch(`Profit margin forecast, demand, and analysis for ${request.cropName} in ${request.location}`, {
             searchDepth: "advanced",
             maxResults: 5
         });
@@ -452,7 +459,7 @@ export const getIndianAgriNews = async (location?: string, topic?: string, timeF
     try {
         const topicQuery = topic ? ` about ${topic}` : '';
 
-        const searchResults = await tavilyClient.search(`Latest agriculture news ${location || 'India'}${topicQuery}`, {
+        const searchResults = await tavilySearch(`Latest agriculture news ${location || 'India'}${topicQuery}`, {
             searchDepth: "advanced",
             maxResults: 10,
             topic: "news"
@@ -582,7 +589,7 @@ export const getCropYieldPrediction = async (request: CropYieldRequest, language
 
 export const getPriceBrokerAnalysis = async (cropName: string, location: string, language: string = 'en'): Promise<PriceBrokerAnalysis> => {
     try {
-        const searchResults = await tavilyClient.search(`Broker price analysis, trends, and demand for ${cropName} in ${location}`, {
+        const searchResults = await tavilySearch(`Broker price analysis, trends, and demand for ${cropName} in ${location}`, {
             searchDepth: "advanced",
             maxResults: 5
         });
@@ -719,3 +726,4 @@ export const parseUserCommand = async (command: string): Promise<ParsedCommand> 
         return handleGeminiError(error, 'parsing user command');
     }
 };
+
