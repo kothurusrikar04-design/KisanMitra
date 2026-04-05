@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { detectCropDisease, analyzeSoilHealth } from '../services/geminiService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSharedState } from '../contexts/SharedStateContext';
 import type { DiseaseReport, SoilHealthReport } from '../types';
 import Card from './common/Card';
 import Button from './common/Button';
@@ -22,12 +23,12 @@ const parsePhValue = (phString: string): number => {
 
 const DiseaseDetection: React.FC = () => {
   const { translate, language } = useLanguage();
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('disease');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const [mimeType, setMimeType] = useState<string>('');
-  const [diseaseReport, setDiseaseReport] = useState<DiseaseReport | null>(null);
-  const [soilReport, setSoilReport] = useState<SoilHealthReport | null>(null);
+  const [analysisMode, setAnalysisMode] = useSharedState<AnalysisMode>('disease_mode', 'disease');
+  const [imagePreview, setImagePreview] = useSharedState<string | null>('disease_preview', null);
+  const [imageBase64, setImageBase64] = useSharedState<string | null>('disease_base64', null);
+  const [mimeType, setMimeType] = useSharedState<string>('disease_mimeType', '');
+  const [diseaseReport, setDiseaseReport] = useSharedState<DiseaseReport | null>('disease_report', null);
+  const [soilReport, setSoilReport] = useSharedState<SoilHealthReport | null>('soil_report', null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);

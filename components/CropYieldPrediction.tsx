@@ -7,6 +7,7 @@ import Button from './common/Button';
 import Spinner from './common/Spinner';
 import Icon from './common/Icon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSharedState } from '../contexts/SharedStateContext';
 
 const YieldChart: React.FC<{ response: CropYieldResponse }> = ({ response }) => {
     const { translate } = useLanguage();
@@ -73,14 +74,14 @@ interface CropYieldPredictionProps {
 
 const CropYieldPrediction: React.FC<CropYieldPredictionProps> = () => {
   const { translate, language } = useLanguage();
-  const [request, setRequest] = useState<CropYieldRequest>({
+  const [request, setRequest] = useSharedState<CropYieldRequest>('cropyield_request', {
     crop: 'Corn',
     location: '',
     area: 100,
     areaUnit: 'acres',
     soilType: SoilType.Loam,
   });
-  const [prediction, setPrediction] = useState<CropYieldResponse | null>(null);
+  const [prediction, setPrediction] = useSharedState<CropYieldResponse | null>('cropyield_prediction', null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 

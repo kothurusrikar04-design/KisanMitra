@@ -3,6 +3,7 @@ import { getPlantingRecommendations } from '../services/geminiService';
 import { SoilType, CropType } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { PlantingRecommendationResponse, PlantingRequest } from '../types';
+import { useSharedState } from '../contexts/SharedStateContext';
 import Card from './common/Card';
 import Button from './common/Button';
 import Spinner from './common/Spinner';
@@ -14,11 +15,11 @@ interface PlantingRecommendationsProps {
 
 const PlantingRecommendations: React.FC<PlantingRecommendationsProps> = () => {
   const { translate, language } = useLanguage();
-  const [location, setLocation] = useState<string>('');
-  const [previousCrop, setPreviousCrop] = useState<string>('');
-  const [soilType, setSoilType] = useState<SoilType>(SoilType.Loam);
-  const [cropType, setCropType] = useState<CropType>(CropType.Fruit);
-  const [recommendationResponse, setRecommendationResponse] = useState<PlantingRecommendationResponse | null>(null);
+  const [location, setLocation] = useSharedState<string>('planting_location', '');
+  const [previousCrop, setPreviousCrop] = useSharedState<string>('planting_previousCrop', '');
+  const [soilType, setSoilType] = useSharedState<SoilType>('planting_soilType', SoilType.Loam);
+  const [cropType, setCropType] = useSharedState<CropType>('planting_cropType', CropType.Fruit);
+  const [recommendationResponse, setRecommendationResponse] = useSharedState<PlantingRecommendationResponse | null>('planting_recommendation', null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   

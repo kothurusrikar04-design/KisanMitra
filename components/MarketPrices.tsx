@@ -10,6 +10,7 @@ import Spinner from './common/Spinner';
 import Icon from './common/Icon';
 import SetMarketAlertDialog from './modals/SetMarketAlertDialog';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSharedState } from '../contexts/SharedStateContext';
 
 interface MarketPricesProps {
 }
@@ -113,8 +114,8 @@ const PriceChart: React.FC<{ historicalData: PriceDataPoint[], predictedData: Pr
 const MarketPrices: React.FC<MarketPricesProps> = () => {
   const { currentUser } = useAuth();
   const { translate, language } = useLanguage();
-  const [crop, setCrop] = useState<string>('');
-  const [location, setLocation] = useState<string>('');
+  const [crop, setCrop] = useSharedState<string>('market_crop', '');
+  const [location, setLocation] = useSharedState<string>('market_location', '');
   
   const formatDateForInput = (date: Date): string => date.toISOString().split('T')[0];
 
@@ -130,10 +131,10 @@ const MarketPrices: React.FC<MarketPricesProps> = () => {
     };
   };
 
-  const [startDate, setStartDate] = useState<string>(getInitialDates().start);
-  const [endDate, setEndDate] = useState<string>(getInitialDates().end);
+  const [startDate, setStartDate] = useSharedState<string>('market_startDate', getInitialDates().start);
+  const [endDate, setEndDate] = useSharedState<string>('market_endDate', getInitialDates().end);
 
-  const [prediction, setPrediction] = useState<CropPricePrediction | null>(null);
+  const [prediction, setPrediction] = useSharedState<CropPricePrediction | null>('market_prediction', null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<Omit<Alert, 'id' | 'uid' | 'status' | 'createdAt' | 'relatedView' | 'relatedEntityId'> | null>(null);

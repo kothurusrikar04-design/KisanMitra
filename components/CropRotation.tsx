@@ -5,12 +5,13 @@ import type { ProfitForecastRequest, ProfitForecastResponse } from '../types';
 import Icon from './common/Icon';
 import Spinner from './common/Spinner';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSharedState } from '../contexts/SharedStateContext';
 
 const ProfitForecaster: React.FC = () => {
     const { userProfile } = useAuth();
     const { translate } = useLanguage();
     const currencies = ['USD', 'EUR', 'INR', 'GBP', 'JPY', 'CAD', 'AUD'];
-    const [request, setRequest] = useState<ProfitForecastRequest>({
+    const [request, setRequest] = useSharedState<ProfitForecastRequest>('croprotation_request', {
         cropName: 'Corn',
         location: userProfile?.location || '',
         expectedYield: 50,
@@ -20,7 +21,7 @@ const ProfitForecaster: React.FC = () => {
         totalCosts: 15000,
         currency: 'USD',
     });
-    const [forecast, setForecast] = useState<ProfitForecastResponse | null>(null);
+    const [forecast, setForecast] = useSharedState<ProfitForecastResponse | null>('croprotation_forecast', null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
