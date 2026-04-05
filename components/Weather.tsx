@@ -4,6 +4,7 @@ import { createAlert } from '../services/alertService';
 import { onCustomAlertsSnapshot, deleteCustomAlert } from '../services/customAlertService';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useWeather } from '../contexts/WeatherContext';
 import type { WeatherData, MicroclimateAnalysis, Alert, ActiveView, CustomAlert } from '../types';
 import Card from './common/Card';
 import Icon from './common/Icon';
@@ -54,14 +55,20 @@ const AlertDisplay: React.FC<{ alert: Omit<Alert, 'id' | 'uid' | 'status' | 'cre
 const Weather: React.FC<WeatherProps> = () => {
   const { currentUser } = useAuth();
   const { translate } = useLanguage();
-  const [location, setLocation] = useState<string>('');
-  const [displayLocation, setDisplayLocation] = useState<string>('');
-  const [coordinates, setCoordinates] = useState<{lat: number, lng: number} | null>(null);
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [weatherClass, setWeatherClass] = useState<string>('sunny');
-  const [activeAlert, setActiveAlert] = useState<Omit<Alert, 'id' | 'uid' | 'status' | 'createdAt' | 'relatedView' | 'relatedEntityId'> | null>(null);
+  
+  const {
+      location, setLocation,
+      displayLocation, setDisplayLocation,
+      coordinates, setCoordinates,
+      weatherData, setWeatherData,
+      loading, setLoading,
+      error, setError,
+      weatherClass, setWeatherClass,
+      activeAlert, setActiveAlert,
+      microclimateData, setMicroclimateData,
+      microclimateLoading, setMicroclimateLoading,
+      microclimateError, setMicroclimateError
+  } = useWeather();
   const [isCustomAlertModalOpen, setIsCustomAlertModalOpen] = useState(false);
   const [customAlerts, setCustomAlerts] = useState<CustomAlert[]>([]);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -71,10 +78,6 @@ const Weather: React.FC<WeatherProps> = () => {
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-
-  const [microclimateData, setMicroclimateData] = useState<MicroclimateAnalysis | null>(null);
-  const [microclimateLoading, setMicroclimateLoading] = useState<boolean>(false);
-  const [microclimateError, setMicroclimateError] = useState<string | null>(null);
   
   const [animatedIconIndex, setAnimatedIconIndex] = useState(0);
   const animatedIcons = ['sun', 'cloud', 'cloud-rain'];

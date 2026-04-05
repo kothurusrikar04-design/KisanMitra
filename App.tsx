@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { WeatherProvider } from './contexts/WeatherContext';
 import { logout } from './services/authService';
 import { ActiveView, FarmerProfile, ProductListing } from './types';
 import { viewToPath, pathToView } from './routes';
@@ -311,9 +312,10 @@ const App: React.FC = () => {
     <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>
-          <ToastProvider>
-            <ErrorBoundary>
-              <Routes>
+          <WeatherProvider>
+            <ToastProvider>
+              <ErrorBoundary>
+                <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<LandingPageWrapper />} />
                 <Route path="/login/farmer" element={<FarmerLoginWrapper />} />
@@ -361,6 +363,7 @@ const App: React.FC = () => {
               <ToastContainer />
             </ErrorBoundary>
           </ToastProvider>
+          </WeatherProvider>
         </AuthProvider>
       </LanguageProvider>
     </BrowserRouter>
