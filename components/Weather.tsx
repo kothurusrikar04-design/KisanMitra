@@ -211,25 +211,39 @@ const Weather: React.FC<WeatherProps> = () => {
 }, [coordinates, weatherData, displayLocation, microclimateData]);
 
 useEffect(() => {
-    if (typeof L === 'undefined') return;
-    
-    // Initialize map
-    if (coordinates && mapContainerRef.current && !leafletMapRef.current) {
-        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' });
+    // Map requires coordinates and container
+    if (!coordinates || !mapContainerRef.current) return;
+
+    const initMap = () => {
+        if (!mapContainerRef.current || typeof L === 'undefined') return;
         
-        leafletMapRef.current = L.map(mapContainerRef.current, { 
-            center: [coordinates.lat, coordinates.lng], 
-            zoom: 10, 
-            layers: [streetLayer] 
-        });
-        L.control.layers({ "Street": streetLayer, "Satellite": satelliteLayer }).addTo(leafletMapRef.current);
-    }
-    
-    // Update markers whenever dependencies change
-    if (leafletMapRef.current) {
+        if (!leafletMapRef.current) {
+            const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri' });
+            
+            leafletMapRef.current = L.map(mapContainerRef.current, { 
+                center: [coordinates.lat, coordinates.lng], 
+                zoom: 10, 
+                layers: [streetLayer] 
+            });
+            L.control.layers({ "Street": streetLayer, "Satellite": satelliteLayer }).addTo(leafletMapRef.current);
+        }
+        
+        // Update markers whenever dependencies change
         leafletMapRef.current.invalidateSize();
         updateMarkers();
+    };
+
+    if (typeof L !== 'undefined') {
+        initMap();
+    } else {
+        const pollLeaflet = setInterval(() => {
+            if (typeof L !== 'undefined') {
+                clearInterval(pollLeaflet);
+                initMap();
+            }
+        }, 100);
+        return () => clearInterval(pollLeaflet);
     }
 }, [coordinates, updateMarkers]);
 

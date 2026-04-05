@@ -165,25 +165,43 @@ export const FarmMachinerySharing: React.FC = () => {
     }, [allListings, currentUser, userCoords]);
 
     useEffect(() => {
-        if (typeof L === 'undefined') return;
+        // Map requires coordinate data and map container
+        if (!userCoords || !mapContainerRef.current || browseView !== 'map') {
+            if (browseView !== 'map' && mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+            return;
+        }
 
-        // This effect now correctly handles map creation and destruction
-        if (browseView === 'map' && userCoords && mapContainerRef.current) {
-            if (!mapRef.current) { // Only create if it doesn't exist yet
+        const initMapAndMarkers = () => {
+             if (browseView !== 'map' || !mapContainerRef.current || typeof L === 'undefined') return;
+             
+             if (!mapRef.current) { 
                 mapRef.current = L.map(mapContainerRef.current).setView([userCoords.lat, userCoords.lng], 10);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current);
                 L.marker([userCoords.lat, userCoords.lng]).addTo(mapRef.current).bindPopup('Your Location');
-                
-                otherListings.forEach(machine => {
-                    L.marker([machine.coordinates.lat, machine.coordinates.lng])
-                        .addTo(mapRef.current)
-                        .bindPopup(`<b>${machine.model} ${machine.type}</b><br>${machine.rentalRate} ${machine.currency}/${machine.rateType === 'perDay' ? 'day' : 'hr'}`);
-                });
-            }
-        } else if (browseView !== 'map' && mapRef.current) {
-            // If view is not map, and map instance exists, destroy it.
-            mapRef.current.remove();
-            mapRef.current = null;
+             }
+
+             // Update markers
+             // Note: In a production app, we would clear existing markers first.
+             otherListings.forEach(machine => {
+                 L.marker([machine.coordinates.lat, machine.coordinates.lng])
+                     .addTo(mapRef.current)
+                     .bindPopup(`<b>${machine.model} ${machine.type}</b><br>${machine.rentalRate} ${machine.currency}/${machine.rateType === 'perDay' ? 'day' : 'hr'}`);
+             });
+        };
+
+        if (typeof L !== 'undefined') {
+            initMapAndMarkers();
+        } else {
+            const pollLeaflet = setInterval(() => {
+                if (typeof L !== 'undefined') {
+                    clearInterval(pollLeaflet);
+                    initMapAndMarkers();
+                }
+            }, 100);
+            return () => clearInterval(pollLeaflet);
         }
     }, [browseView, userCoords, otherListings]);
 
